@@ -1,5 +1,4 @@
-﻿````markdown
-# SentinelSIF
+﻿# SentinelSIF
 
 ### AI/NLP Engine for Detecting Serious Injury & Fatality (SIF) Precursors in HSSE Reports
 
@@ -168,69 +167,6 @@ A documented ingestion schema allows an existing or future HSSE platform to map 
 
 ---
 
-## System Architecture
-
-```text
-                         â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-                         â”‚   Report Sources     â”‚
-                         â”‚ CSV / JSON / API     â”‚
-                         â”‚ Live Report          â”‚
-                         â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                                    â”‚
-                                    â–¼
-                         â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-                         â”‚ Ingestion &          â”‚
-                         â”‚ Validation           â”‚
-                         â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                                    â”‚
-                                    â–¼
-                         â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-                         â”‚ Text Preprocessing   â”‚
-                         â”‚ Normalisation        â”‚
-                         â”‚ Code-mix handling    â”‚
-                         â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                                    â”‚
-                    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-                    â–¼                               â–¼
-          â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”             â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-          â”‚ Energy Detector  â”‚             â”‚ Control Detector â”‚
-          â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜             â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                                   â–¼
-                         â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-                         â”‚ SIF Decision Logic  â”‚
-                         â”‚ Energy + Control    â”‚
-                         â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                                    â”‚
-                       â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-                       â–¼                         â–¼
-                 â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”            â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-                 â”‚ Confident â”‚            â”‚ Human Review â”‚
-                 â”‚ Result    â”‚            â”‚ / Override   â”‚
-                 â””â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”˜            â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”˜
-                       â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                                    â–¼
-                         â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-                         â”‚ LSR Tagger +        â”‚
-                         â”‚ Precursor Extractor â”‚
-                         â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                                    â”‚
-                                    â–¼
-                         â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-                         â”‚ SQLite Enrichment   â”‚
-                         â”‚ Store               â”‚
-                         â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                                    â”‚
-                                    â–¼
-                         â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-                         â”‚ Analytics Dashboard â”‚
-                         â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-````
-
-The prototype follows a source-agnostic ingestion architecture so that the intelligence layer can sit above OIL's existing or future HSSE data source.
-
----
-
 ## Technology Stack
 
 | Layer           | Technology                                |
@@ -252,37 +188,6 @@ The PRD specifies a lightweight REST ingestion service, Python NLP pipeline, rel
 
 ---
 
-## Project Structure
-
-```text
-SentinelSIF/
-â”‚
-â”œâ”€â”€ app.py
-â”œâ”€â”€ requirements.txt
-â”œâ”€â”€ .env.example
-â”‚
-â”œâ”€â”€ sentinelsif/
-â”‚   â”œâ”€â”€ classifier.py
-â”‚   â”œâ”€â”€ preprocessor.py
-â”‚   â”œâ”€â”€ energy_detector.py
-â”‚   â”œâ”€â”€ control_detector.py
-â”‚   â”œâ”€â”€ lsr_tagger.py
-â”‚   â””â”€â”€ precursor_extractor.py
-â”‚
-â”œâ”€â”€ templates/
-â”‚   â””â”€â”€ index.html
-â”‚
-â”œâ”€â”€ static/
-â”‚   â”œâ”€â”€ css/
-â”‚   â””â”€â”€ js/
-â”‚
-â”œâ”€â”€ data/
-â”‚   â””â”€â”€ ...
-â”‚
-â””â”€â”€ README.md
-```
-
----
 
 ## Getting Started
 
@@ -661,5 +566,3 @@ The result is a shift from periodic manual review toward **near-real-time, evide
 SentinelSIF is a hackathon prototype intended to demonstrate the feasibility of an explainable, source-agnostic SIF precursor intelligence layer for OIL's HSSE reporting ecosystem.
 
 It is not a production safety system and should not be used as the sole basis for operational safety decisions.
-
-```
