@@ -1,8 +1,27 @@
+# Python
 .venv/
 venv/
 __pycache__/
 *.py[cod]
+
+# Environment
 .env
+.env.*
+!.env.example
+
+# Logs
 *.log
-.vscode/
+logs/
+
+# Database
 data/sentinelsif.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
