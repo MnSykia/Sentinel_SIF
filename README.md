@@ -12,7 +12,7 @@ Instead of relying primarily on reported injury severity, SentinelSIF evaluates 
 
 This enables HSE teams to identify reports that describe potentially life-threatening situations, prioritize them for review, and discover recurring precursor patterns across sites, activities, energy sources, and safety controls.
 
-The system is being developed as a **Smart India Hackathon (SIH) 2026 prototype** by Team Sentinels for the Oil India Limited (OIL) problem statement.
+The system is being developed as a **Smart India Hackathon (SIH) 2026 prototype** by Team Sentinels for Problem Statement No. **SIH26165**.
 
 ---
 
@@ -49,9 +49,7 @@ The dashboard emphasizes **SIF-precursor density** rather than raw report volume
 
 ## Key Concept
 
-A SIF precursor is not defined by the severity of the outcome.
-
-SentinelSIF focuses on situations where a high-energy source is present and the direct control intended to manage that energy is absent, ineffective, or not followed.
+A SIF precursor is not defined by the severity of the outcome. SentinelSIF focuses on situations where a high-energy source is present and the direct control intended to manage that energy is absent, ineffective, or not followed.
 
 ![Reports](reports-1.png)
 
@@ -107,9 +105,7 @@ Each analyzed report can expose:
 * Decision rationale
 * Confidence score
 
-The objective is not simply to produce a classification, but to show an HSE reviewer **why the report was flagged**.
-
-Confidence is a decision-support signal. It must not be interpreted as measured model accuracy.
+The objective is not simply to produce a classification, but to show an HSE reviewer **why the report was flagged**. Confidence is a decision-support signal. It must not be interpreted as measured model accuracy.
 
 ### IOGP Life-Saving Rules
 
@@ -508,30 +504,17 @@ The current quantitative prototype benchmark uses the records in `data/dataset.j
 data/train_split.json
 ```
 
-The current dataset contains 222 records, with 154 records in the training split and 68 records in the synthetic held-out benchmark.
+The current demo dataset contains 222 records, with 154 records in the training split and 68 records in the synthetic held-out benchmark.
 
-These benchmark results demonstrate prototype behavior only.
-
-They must not be presented as:
-
-* OIL field validation
-* Production accuracy
-* Expert-validated performance
-* Real-world OIL performance
-
-The benchmark is intended to demonstrate that the complete classification and tagging pipeline can be quantitatively evaluated on controlled development data.
+These benchmark results demonstrate prototype behavior only. The benchmark is intended to demonstrate that the complete classification and tagging pipeline can be quantitatively evaluated on controlled development data.
 
 ### Formal Expert-Reviewed Evaluation
 
-Formal evaluation is intentionally separate from the synthetic benchmark.
-
-The evaluation infrastructure supports:
+Formal evaluation is intentionally separate from the synthetic benchmark. The evaluation infrastructure supports:
 
 ```text
 data/expert_reviewed_test.json
 ```
-
-No fabricated expert-reviewed records are included.
 
 A valid formal evaluation dataset must contain, at minimum:
 
@@ -550,9 +533,7 @@ source_reference
 reviewed_at
 ```
 
-Formal evaluation requires independently supplied expert-reviewed labels.
-
-The evaluator validates required fields, report-ID uniqueness, ground-truth types, Life-Saving Rule values, provenance metadata, and training/test leakage. It does not silently remove overlapping or malformed records.
+Formal evaluation requires independently supplied expert-reviewed labels. The evaluator validates required fields, report-ID uniqueness, ground-truth types, Life-Saving Rule values, provenance metadata, and training/test leakage. 
 
 Until a genuinely independent expert-reviewed dataset is available:
 
@@ -623,9 +604,7 @@ SIF Classification
               Labelled Feedback
 ```
 
-The original model output and subsequent human override are retained separately so that reviewer decisions remain auditable.
-
-Human corrections can provide labelled examples for future model refinement.
+The original model output and subsequent human override are retained separately so that reviewer decisions remain auditable. Human corrections can provide labelled examples for future model refinement.
 
 ---
 
