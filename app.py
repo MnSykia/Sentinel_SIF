@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from sentinelsif.classifier import SentinelClassifier
+from evaluation import evaluate_classifier
 
 ROOT = Path(__file__).parent
 DB_PATH = Path(os.getenv("SENTINELSIF_DATABASE_URL", str(ROOT / "data" / "sentinelsif.db")))
@@ -27,14 +28,47 @@ templates = Jinja2Templates(directory=ROOT / "templates")
 @contextmanager
 def db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True); con = sqlite3.connect(DB_PATH); con.row_factory = sqlite3.Row
-    try: yield con; con.commit()
-    finally: con.close()
+    try:
+        yield con
+        con.commit()
+    except Exception:
+        con.rollback()
+        raise
+    finally:
+        con.close()
+
+def validate_training_dataset(path: Path):
+    try:
+        records=json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as error:
+        raise RuntimeError(f"Training dataset is missing: {path}") from error
+    except (OSError, json.JSONDecodeError) as error:
+        raise RuntimeError(f"Training dataset could not be read: {path}") from error
+    if not isinstance(records,list) or not records: raise RuntimeError("Training dataset must be a non-empty JSON array")
+    ids=set()
+    for index,record in enumerate(records,1):
+        if not isinstance(record,dict): raise RuntimeError(f"Training record {index} must be an object")
+        report_id=record.get("report_id")
+        if not isinstance(report_id,str) or not report_id.strip(): raise RuntimeError(f"Training record {index} has an invalid report_id")
+        if report_id in ids: raise RuntimeError(f"Training dataset contains duplicate report_id: {report_id}")
+        ids.add(report_id)
+        if not isinstance(record.get("narrative"),str) or len(record["narrative"].strip())<5: raise RuntimeError(f"Training record {index} has an invalid narrative")
+        ground_truth=record.get("ground_truth")
+        if not isinstance(ground_truth,dict) or not isinstance(ground_truth.get("sif_potential"),bool): raise RuntimeError(f"Training record {index} has invalid ground_truth")
+    return records
 
 @app.on_event("startup")
 def startup():
     with db() as con: con.executescript("""CREATE TABLE IF NOT EXISTS reports(report_id TEXT PRIMARY KEY,timestamp TEXT NOT NULL,report_type TEXT NOT NULL,site TEXT NOT NULL,activity TEXT NOT NULL,narrative TEXT NOT NULL,filer_severity TEXT,source TEXT NOT NULL,model_output TEXT NOT NULL,created_at TEXT NOT NULL); CREATE TABLE IF NOT EXISTS overrides(id INTEGER PRIMARY KEY,report_id TEXT NOT NULL,original_sif INTEGER NOT NULL,original_confidence REAL NOT NULL,overridden_sif INTEGER NOT NULL,reviewer TEXT NOT NULL,reason TEXT,created_at TEXT NOT NULL);""")
     # Model-development examples train the classifier only; they are never ingested as dashboard reports.
-    engine.train_on_data(str(ROOT / "data" / "train_split.json"))
+    training_path=ROOT / "data" / "train_split.json"
+    validate_training_dataset(training_path)
+    try:
+        engine.train_on_data(str(training_path))
+    except Exception as error:
+        logger.exception("Classifier training failed during startup")
+        raise RuntimeError("SentinelSIF classifier training failed") from error
+    if engine.embedding_model is not None and not engine.is_trained: raise RuntimeError("SentinelSIF classifier did not become ready after training")
 
 class ReportSubmission(BaseModel):
     report_id: Optional[str] = None; timestamp: Optional[datetime] = None; report_type: str = "Observation"
@@ -43,7 +77,8 @@ class ReportSubmission(BaseModel):
 class OverrideSubmission(BaseModel):
     classification: bool; reviewer: str = Field(min_length=2, max_length=100); reason: Optional[str] = Field(None, max_length=1000)
 
-def normalise(raw: dict[str, Any], source: str):
+def normalise(raw: Any, source: str):
+    if not isinstance(raw,dict): return None,["record must be an object"]
     x = {str(k).strip().lower(): v for k,v in raw.items()}; get = lambda n: next((x[k] for k in ALIASES[n] if x.get(k) not in (None,"")), None)
     errors=[]; rid=get("report_id"); narrative=get("narrative"); site=get("site"); activity=get("activity"); ts=get("timestamp") or datetime.now(timezone.utc).isoformat()
     if not rid: errors.append("missing report_id (or id)")
@@ -51,12 +86,19 @@ def normalise(raw: dict[str, Any], source: str):
     if not site: errors.append("missing site/location")
     if not activity: errors.append("missing activity/work_type")
     try: datetime.fromisoformat(str(ts).replace("Z","+00:00"))
-    except ValueError: errors.append("timestamp/date must be ISO-8601 compatible")
+    except (TypeError,ValueError): errors.append("timestamp/date must be ISO-8601 compatible")
     if errors: return None,errors
-    return {"report_id":str(rid).strip(),"timestamp":str(ts),"report_type":str(get("report_type") or "Observation"),"site":str(site).strip(),"activity":str(activity).strip(),"narrative":narrative.strip(),"filer_severity":str(get("filer_severity") or "Unspecified"),"source":source},[]
+    return {"report_id":str(rid).strip(),"timestamp":str(ts),"report_type":str(get("report_type") or "Observation"),"site":str(site or "").strip(),"activity":str(activity or "").strip(),"narrative":narrative.strip() if isinstance(narrative,str) else "","filer_severity":str(get("filer_severity") or "Unspecified"),"source":source},[]
 
 def report_from_row(row):
-    r=json.loads(row["model_output"]); r.update({k:row[k] for k in ("report_id","timestamp","report_type","site","activity","narrative","filer_severity","source")})
+    try: r=json.loads(row["model_output"])
+    except (TypeError,json.JSONDecodeError):
+        logger.exception("Malformed model_output for report_id=%s",row["report_id"])
+        raise HTTPException(500,"Persisted report classification is invalid")
+    if not isinstance(r,dict) or "sif_potential" not in r:
+        logger.error("Invalid model_output structure for report_id=%s",row["report_id"])
+        raise HTTPException(500,"Persisted report classification is invalid")
+    model_sif=bool(r["sif_potential"]); r.update({k:row[k] for k in ("report_id","timestamp","report_type","site","activity","narrative","filer_severity","source")}); r["model_sif_potential"]=model_sif; r["effective_sif_potential"]=model_sif
     with db() as con: history=[dict(x) for x in con.execute("SELECT overridden_sif,reviewer,reason,created_at FROM overrides WHERE report_id=? ORDER BY id",(row["report_id"],))]
     review_reasons=[]
     if r.get("needs_review"): review_reasons.append("Low confidence")
@@ -66,7 +108,7 @@ def report_from_row(row):
     if history:
         # The reviewer decision is effective immediately; retain model output and
         # history for audit while removing an already-reviewed item from the queue.
-        r.update(model_sif_potential=r["sif_potential"],sif_potential=bool(history[-1]["overridden_sif"]),human_override=True,reviewer_decision="SIF Potential" if history[-1]["overridden_sif"] else "Non-SIF",needs_review=False,is_discrepancy=False,review_reasons=[])
+        r.update(sif_potential=bool(history[-1]["overridden_sif"]),effective_sif_potential=bool(history[-1]["overridden_sif"]),human_override=True,reviewer_decision="SIF Potential" if history[-1]["overridden_sif"] else "Non-SIF",needs_review=False,is_discrepancy=False,review_reasons=[])
     return r
 def all_reports():
     with db() as con: rows=con.execute("SELECT * FROM reports ORDER BY timestamp DESC").fetchall()
@@ -74,6 +116,11 @@ def all_reports():
 def persist(record):
     result=engine.analyze_report(record)
     with db() as con: con.execute("INSERT INTO reports VALUES (?,?,?,?,?,?,?,?,?,?)",(*[record[k] for k in ("report_id","timestamp","report_type","site","activity","narrative","filer_severity","source")],json.dumps(result),datetime.now(timezone.utc).isoformat()))
+    return result
+
+def persist_in_connection(con,record):
+    result=engine.analyze_report(record)
+    con.execute("INSERT INTO reports VALUES (?,?,?,?,?,?,?,?,?,?)",(*[record[k] for k in ("report_id","timestamp","report_type","site","activity","narrative","filer_severity","source")],json.dumps(result),datetime.now(timezone.utc).isoformat()))
     return result
 
 @app.get("/",response_class=HTMLResponse)
@@ -93,9 +140,12 @@ def report(report_id:str):
 @app.post("/api/reports",status_code=201)
 def create(sub:ReportSubmission):
     raw=sub.model_dump(); raw["report_id"]=sub.report_id or f"LIVE-{uuid.uuid4().hex[:10].upper()}"; raw["timestamp"]=sub.timestamp.isoformat() if sub.timestamp else datetime.now(timezone.utc).isoformat(); rec,errs=normalise(raw,"live")
-    if errs: raise HTTPException(422,{"message":"Report validation failed","errors":errs})
+    if errs or rec is None: raise HTTPException(422,{"message":"Report validation failed","errors":errs or ["record validation failed"]})
     try: return persist(rec)
     except sqlite3.IntegrityError: raise HTTPException(409,"A report with this report_id already exists")
+    except Exception as error:
+        logger.exception("Live report persistence failed: report_id=%s",rec["report_id"])
+        raise HTTPException(500,"Report could not be persisted") from error
 @app.post("/api/reports/upload")
 async def upload(file:UploadFile=File(...)):
     name=(file.filename or "").lower()
@@ -126,7 +176,7 @@ async def upload(file:UploadFile=File(...)):
         if rec and rec["report_id"] in seen:
             errs.append("duplicate report_id in this upload")
             duplicate_in_upload.append(rec["report_id"])
-        if errs: invalid.append({"row":i,"report_id":rec["report_id"] if rec else None,"errors":errs})
+        if errs or rec is None: invalid.append({"row":i,"report_id":rec["report_id"] if rec is not None else None,"errors":errs or ["record validation failed"]})
         else: valid.append(rec); seen.add(rec["report_id"])
     with db() as con: existing={x[0] for x in con.execute("SELECT report_id FROM reports").fetchall()}
     accepted=[r for r in valid if r["report_id"] not in existing]; duplicates=duplicate_in_upload+[r["report_id"] for r in valid if r["report_id"] in existing]
@@ -145,7 +195,12 @@ def override(report_id:str,payload:OverrideSubmission):
     with db() as con:
         row=con.execute("SELECT model_output FROM reports WHERE report_id=?",(report_id,)).fetchone()
         if not row: raise HTTPException(404,"Report not found")
-        model=json.loads(row[0]); con.execute("INSERT INTO overrides(report_id,original_sif,original_confidence,overridden_sif,reviewer,reason,created_at) VALUES(?,?,?,?,?,?,?)",(report_id,int(model["sif_potential"]),model["confidence_score"],int(payload.classification),payload.reviewer,payload.reason,datetime.now(timezone.utc).isoformat()))
+        try: model=json.loads(row[0])
+        except (TypeError,json.JSONDecodeError):
+            logger.exception("Malformed model_output during override for report_id=%s",report_id)
+            raise HTTPException(500,"Persisted report classification is invalid")
+        if not isinstance(model,dict) or "sif_potential" not in model or "confidence_score" not in model: raise HTTPException(500,"Persisted report classification is invalid")
+        con.execute("INSERT INTO overrides(report_id,original_sif,original_confidence,overridden_sif,reviewer,reason,created_at) VALUES(?,?,?,?,?,?,?)",(report_id,int(model["sif_potential"]),model["confidence_score"],int(payload.classification),payload.reviewer,payload.reason,datetime.now(timezone.utc).isoformat()))
     return report(report_id)
 
 @app.delete("/api/reports/{report_id}")
@@ -196,22 +251,32 @@ def reset_demo_data():
     except (OSError, json.JSONDecodeError, ValueError):
         logger.exception("Unable to read bundled demo dataset")
         raise HTTPException(500,"The bundled demonstration dataset could not be loaded")
-    clear_persisted_data()
-    rejected=[]; imported=0
-    for index, raw in enumerate(records,1):
-        record, errors=normalise(raw,"demo")
-        if errors: rejected.append({"row":index,"errors":errors}); continue
-        try: persist(record); imported+=1
-        except Exception:
-            logger.exception("Demo record processing failed at row %s", index)
-            rejected.append({"row":index,"errors":["Demo record processing failed"]})
-    return {"message":"Demo dataset reset", "imported_count":imported, "rejected_count":len(rejected), "errors":rejected}
+    prepared=[]; errors=[]; seen=set()
+    for index,raw in enumerate(records,1):
+        record,record_errors=normalise(raw,"demo")
+        if record is not None and record["report_id"] in seen: record_errors.append("duplicate report_id in demo dataset")
+        if record_errors: errors.append({"row":index,"report_id":record["report_id"] if record is not None else None,"errors":record_errors})
+        elif record is not None:
+            seen.add(record["report_id"]); prepared.append(record)
+    if errors: raise HTTPException(422,{"message":"Demo dataset validation failed","errors":errors})
+    try:
+        with db() as con:
+            con.execute("DELETE FROM overrides"); con.execute("DELETE FROM reports")
+            for record in prepared: persist_in_connection(con,record)
+    except Exception as error:
+        logger.exception("Demo dataset reset failed")
+        raise HTTPException(500,"Demo dataset reset could not be completed") from error
+    return {"message":"Demo dataset reset", "imported_count":len(prepared), "rejected_count":0, "errors":[]}
 
 def report_day(timestamp: str) -> date:
     return datetime.fromisoformat(str(timestamp).replace("Z", "+00:00")).date()
 
 def trend_series(data, date_from: Optional[str] = None, date_to: Optional[str] = None):
-    days=[report_day(r["timestamp"]) for r in data]
+    dated=[]
+    for report in data:
+        try: dated.append((report,report_day(report["timestamp"])))
+        except (KeyError,TypeError,ValueError): logger.exception("Ignoring persisted report with malformed timestamp in trend calculation")
+    days=[day for _,day in dated]
     start=date.fromisoformat(date_from) if date_from else (min(days) if days else None)
     end=date.fromisoformat(date_to) if date_to else (max(days) if days else None)
     if not start or not end or start > end: return {"aggregation":"weekly","points":[]}
@@ -222,14 +287,26 @@ def trend_series(data, date_from: Optional[str] = None, date_to: Optional[str] =
         buckets.append(current)
         current=(current.replace(day=28)+timedelta(days=4)).replace(day=1) if monthly else current+timedelta(days=7)
     counts={bucket:{"total_reports":0,"sif_count":0} for bucket in buckets}
-    for report, day in zip(data, days):
+    for report, day in dated:
         bucket=bucket_start(day)
         if bucket in counts:
             counts[bucket]["total_reports"]+=1
             counts[bucket]["sif_count"]+=int(report["sif_potential"])
     return {"aggregation":"monthly" if monthly else "weekly","points":[{"period":bucket.isoformat(),"label":bucket.strftime("%Y-%m" if monthly else "%d %b"),"total_reports":values["total_reports"],"sif_count":values["sif_count"],"rate":round(100*values["sif_count"]/values["total_reports"],1) if values["total_reports"] else 0} for bucket, values in counts.items()]}
 
+def validate_date_filters(date_from: Optional[str], date_to: Optional[str]):
+    parsed_from=parsed_to=None
+    for name,value in (("date_from",date_from),("date_to",date_to)):
+        if value:
+            try: parsed=datetime.strptime(value,"%Y-%m-%d").date()
+            except (TypeError,ValueError): raise HTTPException(422,detail=f"{name} must be YYYY-MM-DD")
+            if name=="date_from": parsed_from=parsed
+            else: parsed_to=parsed
+    if parsed_from and parsed_to and parsed_from>parsed_to: raise HTTPException(422,detail="date_from must be on or before date_to")
+    return parsed_from.isoformat() if parsed_from else None, parsed_to.isoformat() if parsed_to else None
+
 def summary(date_from: Optional[str] = None, date_to: Optional[str] = None, site: Optional[str] = None, activity: Optional[str] = None, life_saving_rule: Optional[str] = None):
+    date_from,date_to=validate_date_filters(date_from,date_to)
     data=all_reports()
     if date_from: data=[r for r in data if r["timestamp"][:10] >= date_from]
     if date_to: data=[r for r in data if r["timestamp"][:10] <= date_to]
@@ -240,7 +317,8 @@ def summary(date_from: Optional[str] = None, date_to: Optional[str] = None, site
     def ranked(key):
         out=[]
         for value in sorted({r[key] for r in data}):
-            group=[r for r in data if r[key]==value]; count=sum(r["sif_potential"] for r in group); out.append({key:value,"total_reports":len(group),"sif_count":count,"sif_density":round(100*count/len(group),1)})
+            group=[r for r in data if r[key]==value]; count=sum(r["sif_potential"] for r in group)
+            out.append({key:value,"total_reports":len(group),"sif_count":count,"sif_density":round(100*count/len(group),1)})
         return sorted(out,key=lambda x:x["sif_density"],reverse=True)
     def priority_candidates(key):
         candidates=[]
@@ -285,3 +363,7 @@ def barriers(): return summary()["barrier_distribution"]
 @app.get("/api/dashboard/trends")
 def trends(date_from: Optional[str] = None, date_to: Optional[str] = None, site: Optional[str] = None, activity: Optional[str] = None, life_saving_rule: Optional[str] = None):
     return summary(date_from, date_to, site, activity, life_saving_rule)["sif_precursor_trend"]
+
+@app.get("/api/evaluation")
+def evaluation():
+    return evaluate_classifier(ROOT, engine)

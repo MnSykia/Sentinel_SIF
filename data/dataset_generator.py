@@ -1,3 +1,11 @@
+"""Generate synthetic development records for SentinelSIF prototype benchmarking.
+
+This file does not contain OIL field data or expert annotations. Every
+``ground_truth`` value is copied from hand-authored seed/template metadata and
+the generated narratives are synthetic variations. ``random.seed(42)`` keeps
+fresh full-dataset generation reproducible; checked-in dataset snapshots must
+still be treated as development artifacts, not formal validation data.
+"""
 # no. 2
 import json
 import random
