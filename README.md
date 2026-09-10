@@ -2,70 +2,78 @@
 
 ### AI/NLP Engine for Detecting Serious Injury & Fatality (SIF) Precursors in HSSE Reports
 
-SentinelSIF is an explainable AI/NLP engine designed for Oil India Limited (OIL) to identify **Serious Injury & Fatality (SIF) precursors** hidden within Unsafe Act (UA), Unsafe Condition (UC), near-miss, and incident reports.
+SentinelSIF is an explainable AI/NLP decision-support engine designed to identify Serious Injury & Fatality (SIF) precursors hidden within Unsafe Act (UA), Unsafe Condition (UC), near-miss, and incident reports.
 
-Instead of relying on reported injury severity, SentinelSIF evaluates the combination of:
+Instead of relying primarily on reported injury severity, SentinelSIF evaluates the combination of:
 
 > **High-energy exposure + failed, absent, or ineffective direct control**
 
-This allows HSE teams to identify reports with potentially life-threatening consequences, prioritize review, and discover recurring precursor patterns across sites and activities.
+This enables HSE teams to identify reports that describe potentially life-threatening situations, prioritize them for review, and discover recurring precursor patterns across sites, activities, energy sources, and safety controls.
 
-The prototype is developed for **Smart India Hackathon (SIH) 2026** by Team Sentinels.
+The system is being developed as a **Smart India Hackathon (SIH) 2026 prototype** by Team Sentinels for the Oil India Limited (OIL) problem statement.
 
 ---
 
 ## Problem
 
-OIL's HSSE workflow generates large volumes of structured reports containing free-text narratives. Traditionally, these narratives are reviewed manually at periodic intervals. This creates a visibility gap: a report classified as "Low" or "Medium" severity can still describe a situation with the potential to cause a fatality or life-altering injury. SentinelSIF addresses this gap by automatically analyzing each report and surfacing the reports and patterns that deserve immediate HSE attention.
+Large HSSE reporting systems can contain substantial volumes of free-text Unsafe Act, Unsafe Condition, near-miss, and incident narratives. Manual review of these narratives at periodic intervals can create a visibility gap: a report recorded as "Low" or "Medium" severity may still describe a situation with the potential to cause a fatality or life-altering injury.
 
-The system focuses on three outcomes:
+SentinelSIF addresses this gap by automatically analyzing report narratives and surfacing the situations and recurring patterns that warrant HSE attention.
+
+The system focuses on three core outcomes:
 
 1. **SIF-Potential Classification**
-   - Classifies reports as SIF-potential or Non-SIF-potential.
-   - Prioritizes high recall because missed SIF precursors carry greater safety cost.
+
+   * Classifies reports as SIF-potential or Non-SIF-potential.
+   * Prioritizes high recall because missed SIF precursors can carry greater safety consequences.
 
 2. **Life-Saving Rule Tagging**
-   - Maps SIF-potential reports to the relevant IOGP Life-Saving Rule(s).
+
+   * Maps relevant reports to applicable IOGP Life-Saving Rules.
 
 3. **Precursor Pattern Intelligence**
-   - Identifies recurring patterns across:
-     - Sites / locations
-     - Activities
-     - Energy sources
-     - Barrier/control failures
-     - Life-Saving Rules
 
-The dashboard ranks sites and activities by **SIF-precursor density**, rather than raw report volume, helping HSE teams focus attention where fatal-potential exposure is concentrated.
+   * Identifies recurring patterns across:
+
+     * Sites
+     * Activities
+     * Energy sources
+     * Barrier/control failures
+     * Life-Saving Rules
+
+The dashboard emphasizes **SIF-precursor density** rather than raw report volume, helping HSE teams identify where fatal-potential exposure is concentrated.
 
 ---
 
 ## Key Concept
 
-A SIF precursor is not defined by the severity of the outcome. SentinelSIF looks for a high-energy situation in which the direct control intended to manage that energy is absent, ineffective, or not followed.
+A SIF precursor is not defined by the severity of the outcome.
+
+SentinelSIF focuses on situations where a high-energy source is present and the direct control intended to manage that energy is absent, ineffective, or not followed.
 
 Examples of high-energy exposure include:
 
-- Electrical energy
-- Stored or pressurized energy
-- Mechanical energy
-- Gravity / elevation
-- Vehicle kinetic energy
-- Chemical / thermal energy
-- Hydrocarbon-related energy
+* Electrical energy
+* Stored or pressurized energy
+* Mechanical energy
+* Gravity / elevation
+* Vehicle kinetic energy
+* Chemical / thermal energy
+* Hydrocarbon-related energy
 
 Examples of direct controls include:
 
-- Energy isolation / LOTO
-- Guarding
-- Permit to Work
-- Gas testing
-- Fall protection
-- Exclusion zones
-- Lifting plans
-- Required PPE
-- Safe operating procedures
+* Energy isolation / LOTO
+* Guarding
+* Permit to Work
+* Gas testing
+* Fall protection
+* Exclusion zones
+* Lifting plans
+* Required PPE
+* Safe operating procedures
 
-This **energy + control** approach is the core classification logic of SentinelSIF. It deliberately avoids treating filer-selected severity as ground truth. :contentReference[oaicite:1]{index=1}
+The **energy + control** approach forms the core decision logic of SentinelSIF. Filer-selected severity is treated as contextual information rather than ground truth.
 
 ---
 
@@ -73,70 +81,72 @@ This **energy + control** approach is the core classification logic of SentinelS
 
 ### AI/NLP Classification
 
-Analyzes free-text HSSE narratives and identifies SIF-potential reports using a hybrid approach combining:
+SentinelSIF analyzes free-text HSSE narratives using a hybrid approach combining:
 
-- Sentence-Transformer semantic embeddings
-- Logistic Regression classification
-- Energy-source detection
-- Direct-control detection
-- Rule/taxonomy logic
+* Sentence-Transformer semantic embeddings
+* Logistic Regression classification
+* Energy-source detection
+* Direct-control detection
+* Rule and taxonomy logic
 
-The architecture is designed to provide semantic understanding while retaining interpretable safety logic.
+The hybrid architecture combines semantic NLP with explicit safety-domain reasoning rather than relying on an opaque LLM-only decision.
 
 ### Explainable AI
 
-Every classification can expose:
+Each analyzed report can expose:
 
-- Detected energy source
-- Control/barrier status
-- Evidence spans
-- Life-Saving Rule
-- Precursor category
-- Decision rationale
-- Confidence score
+* Detected energy source
+* Control/barrier status
+* Evidence spans
+* Life-Saving Rule
+* Precursor category
+* Decision rationale
+* Confidence score
 
-The objective is not simply to produce a prediction, but to show an HSE reviewer **why the report was flagged**.
+The objective is not simply to produce a classification, but to show an HSE reviewer **why the report was flagged**.
+
+Confidence is a decision-support signal. It must not be interpreted as measured model accuracy.
 
 ### IOGP Life-Saving Rules
 
-SentinelSIF supports tagging against the 10 IOGP Life-Saving Rules:
+SentinelSIF supports tagging against the following 10 IOGP Life-Saving Rules:
 
-- Bypassing Safety Controls
-- Confined Space
-- Driving
-- Energy Isolation
-- Hot Work
-- Line of Fire
-- Safe Mechanical Lifting
-- Management of Change
-- Permit to Work
-- Working at Height
+* Bypassing Safety Controls
+* Confined Space
+* Driving
+* Energy Isolation
+* Hot Work
+* Line of Fire
+* Safe Mechanical Lifting
+* Management of Change
+* Permit to Work
+* Working at Height
 
 ### Precursor Pattern Detection
 
 The system extracts and aggregates recurring patterns across:
 
-- Site
-- Activity
-- Energy source
-- Barrier-failure category
-- Life-Saving Rule
+* Site
+* Activity
+* Energy source
+* Barrier-failure category
+* Life-Saving Rule
 
 ### Risk-Concentration Dashboard
 
 The dashboard provides:
 
-- SIF-precursor density rankings
-- Site risk concentration
-- Activity rankings
-- Life-Saving Rule distribution
-- Barrier-failure patterns
-- Trends over time
-- Report-level drill-down
-- Discrepancy detection
-- Human-review queue
+* SIF-precursor density rankings
+* Site risk concentration
+* Activity rankings
+* Life-Saving Rule distribution
+* Barrier-failure patterns
+* Trends over time
+* Report-level drill-down
+* Discrepancy detection
+* Human-review queue
 
-Sites and activities are ranked using SIF-precursor density alongside absolute report counts to avoid allowing high-volume locations to dominate the analysis purely because they submit more reports.
+Sites and activities are ranked using SIF-precursor density alongside absolute report counts so that high-volume locations do not automatically dominate the analysis simply because they submit more reports.
 
 ### Human-in-the-Loop Review
 
@@ -144,50 +154,103 @@ Low-confidence cases and model/filer discrepancies can be reviewed by an HSE use
 
 Reviewers can:
 
-- Inspect the original narrative
-- Examine model evidence
-- Accept or override the classification
-- Add reviewer notes
-- Preserve override history
+* Inspect the original narrative
+* Examine model evidence
+* Accept or override the classification
+* Add reviewer notes
+* Preserve override history
 
-Reviewer corrections can become labelled examples for future model refinement.
+Human corrections are retained as labelled examples that can support future model refinement.
 
 ### Source-Agnostic Ingestion
 
-SentinelSIF does not depend on the internal architecture of a specific HSSE platform.
+SentinelSIF is designed as a source-agnostic intelligence layer rather than a replacement for an existing HSSE platform.
 
 Reports can be supplied through:
 
-- CSV
-- JSON
-- REST API
-- Live Report form
+* CSV
+* JSON
+* REST API
+* Live Report form
 
-A documented ingestion schema allows an existing or future HSSE platform to map its exported data into SentinelSIF without requiring platform-specific assumptions.
+A documented ingestion schema allows an existing or future HSSE platform to map exported data into SentinelSIF without requiring platform-specific assumptions.
 
 ---
 
 ## Technology Stack
 
-| Layer           | Technology                                |
-| --------------- | ----------------------------------------- |
-| Frontend        | HTML5, CSS3, Vanilla JavaScript           |
-| Backend         | Python, FastAPI                           |
-| API Server      | Uvicorn                                   |
-| NLP             | Sentence-Transformers                     |
-| Embedding Model | `all-MiniLM-L6-v2`                        |
-| ML Classifier   | scikit-learn Logistic Regression          |
-| Safety Logic    | Custom rule + taxonomy engine             |
-| Data Processing | Pandas, NumPy                             |
-| Validation      | Pydantic / FastAPI                        |
-| Database        | SQLite                                    |
-| Architecture    | REST API                                  |
-| Explainability  | Evidence spans + energy/control rationale |
+| Layer              | Technology                                |
+| ------------------ | ----------------------------------------- |
+| Frontend           | HTML5, CSS3, Vanilla JavaScript           |
+| Backend            | Python, FastAPI                           |
+| API Server         | Uvicorn                                   |
+| NLP                | Sentence-Transformers                     |
+| Embedding Model    | `all-MiniLM-L6-v2`                        |
+| ML Classifier      | scikit-learn Logistic Regression          |
+| Safety Logic       | Custom rule + taxonomy engine             |
+| Data Processing    | Pandas, NumPy                             |
+| Validation         | Pydantic / FastAPI                        |
+| Prototype Database | SQLite                                    |
+| Architecture       | REST API                                  |
+| Explainability     | Evidence spans + energy/control rationale |
 
-The PRD specifies a lightweight REST ingestion service, Python NLP pipeline, relational prototype store such as SQLite/PostgreSQL, analytics aggregation, dashboard, and reviewer feedback loop.
+The architecture follows a lightweight REST-based design with a Python NLP pipeline, relational prototype store, analytics aggregation, dashboard, and human-review feedback loop.
 
 ---
 
+## Architecture
+
+```text
+                    HSSE Reports
+                         │
+             ┌───────────┴───────────┐
+             │                       │
+          CSV / JSON            Live Report
+             │                       │
+             └───────────┬───────────┘
+                         │
+                  Ingestion Layer
+                         │
+                  Validation /
+                   Normalization
+                         │
+                         ▼
+                NLP Preprocessing
+                         │
+          ┌──────────────┼──────────────┐
+          │              │              │
+          ▼              ▼              ▼
+    Energy Detector  Control Detector  Semantic
+                                      Classifier
+          │              │              │
+          └──────────────┼──────────────┘
+                         ▼
+                  SIF Decision Engine
+                         │
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+       Evidence        LSR Tags      Precursor
+       Extraction                     Patterns
+          │              │              │
+          └──────────────┼──────────────┘
+                         ▼
+                 Persistence Layer
+                         │
+                         ▼
+               Analytics / Dashboard
+                         │
+          ┌──────────────┴──────────────┐
+          ▼                             ▼
+     HSE Review                    Risk Intelligence
+          │
+          ▼
+     Human Override
+          │
+          ▼
+    Labelled Feedback
+```
+
+---
 
 ## Getting Started
 
@@ -240,13 +303,13 @@ to:
 
 The application can run with its default local configuration.
 
-Default database:
+Default prototype database:
 
 ```text
 data/sentinelsif.db
 ```
 
-Default local origin:
+Default local address:
 
 ```text
 http://127.0.0.1:8000
@@ -286,10 +349,10 @@ Example:
 
 ```csv
 report_id,timestamp,report_type,site,activity,narrative,filer_selected_severity
-SIF-001,2026-09-10T09:30:00,UA,Duliajan Field,Wellhead Maintenance,"LOTO was not verified before opening the equipment and stored pressure remained in the line.",Low
+SIF-001,2026-09-10T09:30:00+05:30,UA,Duliajan Field,Wellhead Maintenance,"LOTO was not verified before opening the equipment and stored pressure remained in the line.",Low
 ```
 
-The filer-selected severity is treated as a comparison signal, **not as expert ground truth**.
+The `filer_selected_severity` field is used as a comparison/context signal, **not as expert ground truth**.
 
 ---
 
@@ -301,7 +364,7 @@ The filer-selected severity is treated as a comparison signal, **not as expert g
 POST /api/reports/upload
 ```
 
-Upload CSV/JSON reports.
+Upload CSV or JSON reports.
 
 Returns imported records, duplicates, and validation failures.
 
@@ -321,13 +384,30 @@ Retrieve report explorer data.
 GET /api/reports/{report_id}
 ```
 
-Retrieve detailed model output for a report.
+Retrieve detailed analysis for a report.
 
 ```text
 POST /api/reports/{report_id}/override
 ```
 
-Persist a reviewer classification decision.
+Persist a human reviewer classification decision.
+
+```text
+DELETE /api/reports/{report_id}
+```
+
+Delete a report and its associated review history.
+
+### Data Management
+
+```text
+POST /api/data/clear-all
+POST /api/data/clear-uploaded
+POST /api/data/clear-live
+POST /api/data/reset-demo
+```
+
+These endpoints manage persisted prototype reports. They do not delete the model-development or evaluation datasets.
 
 ### Dashboard
 
@@ -347,20 +427,19 @@ These endpoints provide the data used by the dashboard's operational analytics.
 GET /api/evaluation
 ```
 
-Returns measured evaluation metrics when a valid held-out labelled test set is available.
+Returns evaluation information with explicit dataset provenance.
 
-The evaluation layer is designed to report:
+The evaluation layer supports:
 
-* SIF classification recall
-* SIF classification precision
-* Life-Saving Rule top-1 accuracy
-* Life-Saving Rule top-2 accuracy
+* SIF Recall
+* SIF Precision
+* Life-Saving Rule Top-1 Accuracy
+* Life-Saving Rule Top-2 Accuracy
 * Test-set size
 * Model version
 * Evaluation timestamp
-* PRD target comparison
-
-**Confidence scores must not be interpreted as measured model accuracy.**
+* Target comparison
+* Evaluation provenance and validation status
 
 ---
 
@@ -370,34 +449,118 @@ The SIH prototype defines the following target metrics:
 
 | Metric             | Prototype Target |
 | ------------------ | ---------------: |
-| SIF Recall         |            â‰¥ 85% |
-| SIF Precision      |            â‰¥ 70% |
-| LSR Top-1 Accuracy |            â‰¥ 75% |
-| LSR Top-2 Accuracy |            â‰¥ 90% |
+| SIF Recall         |            ≥ 85% |
+| SIF Precision      |            ≥ 70% |
+| LSR Top-1 Accuracy |            ≥ 75% |
+| LSR Top-2 Accuracy |            ≥ 90% |
 
-Evaluation must be performed against a genuinely held-out labelled test set and expert-reviewed ground truth. The targets reflect the PRD's emphasis on high recall because a missed SIF precursor carries greater safety cost than an additional false positive.
+These targets are separate from measured results.
+
+SIF Recall is:
+
+```text
+TP / (TP + FN)
+```
+
+SIF Precision is:
+
+```text
+TP / (TP + FP)
+```
+
+LSR Top-1 is counted as correct when the highest-ranked predicted Life-Saving Rule is present in the ground-truth set.
+
+LSR Top-2 is counted as correct when at least one of the two highest-ranked predicted rules is present in the ground-truth set.
+
+The evaluation does not use filer-selected severity as ground truth.
+
+**Confidence scores are decision-support signals and must not be interpreted as measured model accuracy.**
 
 ### Evaluation Data Provenance
 
-No real OIL HSSE data was available to the development team for this prototype. The checked-in `data/dataset.json` contains synthetic development data generated by `data/dataset_generator.py`. It is not real OIL HSSE data, field validation data, or independently expert-reviewed data. Its `ground_truth` fields are generator metadata used for development benchmarking.
+Real OIL HSSE data was not available to the development team for this prototype.
 
-The current quantitative result is reported as a **Development Synthetic Benchmark**. It uses the 68 records in `data/dataset.json` whose stable `report_id` values are absent from `data/train_split.json`. These benchmark metrics demonstrate prototype behavior only and must not be presented as OIL validation, production accuracy, or expert-validated performance.
+The checked-in:
 
-Formal evaluation is separate and reads `data/expert_reviewed_test.json`. That file is intentionally an empty template until an independently supplied dataset is available. Formal records must include `report_id`, `timestamp`, `report_type`, `site`, `activity`, `narrative`, boolean `ground_truth_sif`, list-valued `ground_truth_lsr`, `annotation_status: expert_reviewed`, positive `annotator_count`, `source_reference`, and `reviewed_at`. The evaluator rejects malformed records, duplicate IDs, invalid labels, and IDs overlapping the training split; it never silently removes leakage records.
+```text
+data/dataset.json
+```
 
-Until that dataset is populated with genuinely independent expert review, the Model Performance page shows synthetic benchmark metrics separately and reports **Formal Expert Evaluation: Not Evaluated**.
+contains synthetic development data generated by:
 
-### Operational Security and Storage
+```text
+data/dataset_generator.py
+```
 
-`SENTINELSIF_DATABASE_URL` is currently interpreted as a filesystem path to the SQLite database; it is not a SQLAlchemy-style connection URL. The prototype's report deletion, data-clearing, reset, and reviewer-override endpoints have no authentication or authorization layer. They are suitable for local/demo use only and must be protected by deployment-level authentication and authorization before production use.
+It is not real OIL HSSE data, field-validation data, or independently expert-reviewed data. Its `ground_truth` fields are generator metadata used for controlled development benchmarking.
+
+### Development Synthetic Benchmark
+
+The current quantitative prototype benchmark uses the records in `data/dataset.json` whose stable `report_id` values are absent from:
+
+```text
+data/train_split.json
+```
+
+The current dataset contains 222 records, with 154 records in the training split and 68 records in the synthetic held-out benchmark.
+
+These benchmark results demonstrate prototype behavior only.
+
+They must not be presented as:
+
+* OIL field validation
+* Production accuracy
+* Expert-validated performance
+* Real-world OIL performance
+
+The benchmark is intended to demonstrate that the complete classification and tagging pipeline can be quantitatively evaluated on controlled development data.
+
+### Formal Expert-Reviewed Evaluation
+
+Formal evaluation is intentionally separate from the synthetic benchmark.
+
+The evaluation infrastructure supports:
+
+```text
+data/expert_reviewed_test.json
+```
+
+No fabricated expert-reviewed records are included.
+
+A valid formal evaluation dataset must contain, at minimum:
+
+```text
+report_id
+timestamp
+report_type
+site
+activity
+narrative
+ground_truth_sif
+ground_truth_lsr
+annotation_status
+annotator_count
+source_reference
+reviewed_at
+```
+
+Formal evaluation requires independently supplied expert-reviewed labels.
+
+The evaluator validates required fields, report-ID uniqueness, ground-truth types, Life-Saving Rule values, provenance metadata, and training/test leakage. It does not silently remove overlapping or malformed records.
+
+Until a genuinely independent expert-reviewed dataset is available:
+
+> **Formal Expert Evaluation: Not Evaluated**
+
+Synthetic benchmark results and formal expert evaluation are deliberately kept separate.
 
 ---
 
 ## Explainability
 
-For every analysed report, SentinelSIF attempts to expose the evidence behind the classification.
+For each analyzed report, SentinelSIF attempts to expose the evidence behind the classification.
 
-Example reasoning:
+Example:
 
 ```text
 SIF Potential: YES
@@ -419,7 +582,7 @@ Barrier Failure:
 Energy isolation not verified
 ```
 
-This design supports HSE review rather than replacing it. Every AI-driven result is intended to remain traceable to the underlying report evidence.
+This design supports HSE review rather than replacing it. AI-driven results remain traceable to the underlying report evidence and safety rationale.
 
 ---
 
@@ -427,30 +590,36 @@ This design supports HSE review rather than replacing it. Every AI-driven result
 
 ```text
 Report Submitted
-       â”‚
-       â–¼
+       │
+       ▼
 AI/NLP Analysis
-       â”‚
-       â–¼
+       │
+       ▼
 SIF Classification
-       â”‚
-       â”œâ”€â”€ High Confidence â”€â”€â–º Dashboard
-       â”‚
-       â””â”€â”€ Low Confidence / Discrepancy
-                    â”‚
-                    â–¼
-              Human Review
-                    â”‚
-             â”Œâ”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”
-             â–¼             â–¼
-           Accept        Override
-             â”‚             â”‚
-             â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”˜
-                    â–¼
-             Labelled Example
+       │
+       ├──────── High Confidence ───────► Dashboard
+       │
+       └──────── Low Confidence /
+                 Discrepancy
+                       │
+                       ▼
+                 Human Review
+                       │
+                 ┌─────┴─────┐
+                 ▼           ▼
+              Accept      Override
+                 │           │
+                 └─────┬─────┘
+                       ▼
+                 Final Decision
+                       │
+                       ▼
+              Labelled Feedback
 ```
 
-The reviewer override loop is a first-class component of the prototype and is intended to improve trust and provide corrected examples for future model refinement.
+The original model output and subsequent human override are retained separately so that reviewer decisions remain auditable.
+
+Human corrections can provide labelled examples for future model refinement.
 
 ---
 
@@ -458,7 +627,7 @@ The reviewer override loop is a first-class component of the prototype and is in
 
 ### In Scope
 
-* Free-text UA/UC, near-miss, and incident ingestion
+* Free-text UA, UC, near-miss, and incident ingestion
 * SIF-potential binary classification
 * IOGP Life-Saving Rule tagging
 * Precursor pattern extraction
@@ -467,16 +636,38 @@ The reviewer override loop is a first-class component of the prototype and is in
 * Report-level explainability
 * Human review and override
 * Generic ingestion contract
-* Prototype model evaluation
+* Quantitative synthetic benchmark evaluation
 
 ### Out of Scope for the Hackathon Prototype
 
 * Direct integration with OIL's production HSSE platform
-* Fully automated MLOps/retraining pipeline
+* Fully automated production MLOps/retraining pipeline
 * Predictive forecasting of future fatality probability
-* A dedicated mobile filing application
+* Dedicated mobile filing application
+* Production-grade authentication and authorization
+* Production deployment using real OIL operational data
 
-These capabilities are part of the post-hackathon roadmap rather than requirements of the current prototype.
+These capabilities can be addressed during post-hackathon development.
+
+---
+
+## Operational Security and Storage
+
+The current prototype uses SQLite for local/persistent demonstration storage.
+
+The environment variable:
+
+```text
+SENTINELSIF_DATABASE_URL
+```
+
+is currently interpreted as a filesystem path to the SQLite database. It is not a SQLAlchemy-style database connection URL.
+
+The prototype currently does not implement authentication or authorization for report deletion, data-clearing, demo-reset, or reviewer-override endpoints. These endpoints are intended for controlled local/demo use.
+
+Before production deployment, these operations must be protected with appropriate authentication, authorization, role-based access control, and audit controls.
+
+Do not expose the prototype database or destructive endpoints directly to an untrusted public environment.
 
 ---
 
@@ -488,13 +679,18 @@ The following should remain outside version control:
 
 ```text
 .venv/
+venv/
 .env
 *.db
+*.sqlite
+*.sqlite3
 __pycache__/
 .vscode/
 ```
 
-Use `.env.example` to document required configuration without exposing credentials.
+The `data/` directory itself should not be ignored because legitimate development datasets and dataset definitions are part of the project.
+
+Use `.env.example` to document configuration without exposing credentials.
 
 ---
 
@@ -504,27 +700,68 @@ The recommended demonstration sequence is:
 
 ```text
 1. Submit / upload HSSE reports
-          â†“
-2. SentinelSIF analyses the narratives
-          â†“
+             ↓
+2. SentinelSIF analyzes the narratives
+             ↓
 3. SIF-potential reports are identified
-          â†“
+             ↓
 4. Energy + control evidence is displayed
-          â†“
+             ↓
 5. Life-Saving Rules are assigned
-          â†“
+             ↓
 6. Precursor patterns are aggregated
-          â†“
+             ↓
 7. High-density sites / activities are ranked
-          â†“
+             ↓
 8. Reviewer opens a flagged report
-          â†“
+             ↓
 9. Reviewer accepts or overrides the result
-          â†“
+             ↓
 10. Correction is retained for future model refinement
 ```
 
-This demonstrates the three core SIH requirements in one workflow: classification, Life-Saving Rule tagging, and recurring precursor-pattern discovery.
+This demonstrates the three central SIH requirements in one workflow:
+
+**classification, Life-Saving Rule tagging, and recurring precursor-pattern discovery.**
+
+---
+
+## Project Structure
+
+```text
+SentinelSIF/
+├── app.py
+├── evaluation.py
+├── evaluate.py
+├── requirements.txt
+├── README.md
+├── .env.example
+│
+├── sentinelsif/
+│   ├── classifier.py
+│   ├── preprocessor.py
+│   ├── energy_detector.py
+│   ├── control_detector.py
+│   ├── lsr_tagger.py
+│   └── precursor_extractor.py
+│
+├── data/
+│   ├── dataset.json
+│   ├── train_split.json
+│   ├── dataset_generator.py
+│   └── expert_reviewed_test.json
+│
+├── static/
+│   └── ...
+│
+├── templates/
+│   └── index.html
+│
+└── tests/
+    └── ...
+```
+
+The runtime SQLite database is intentionally excluded from version control.
 
 ---
 
@@ -533,11 +770,14 @@ This demonstrates the three core SIH requirements in one workflow: classificatio
 Post-hackathon development can extend SentinelSIF with:
 
 * Integration with OIL's selected HSSE data source
+* Independently expert-reviewed evaluation using appropriate operational data
 * Automated model retraining
 * Leading-indicator risk scoring
 * Guided report-filing prompts
 * Mobile-first filing assistance
-* Industry benchmarking against SIF exposure-rate baselines
+* Production authentication and role-based access control
+* PostgreSQL or another managed production database
+* Industry benchmarking against appropriate SIF exposure-rate baselines
 
 These are future extensions and are not represented as capabilities of the current SIH prototype.
 
@@ -545,7 +785,9 @@ These are future extensions and are not represented as capabilities of the curre
 
 ## Why SentinelSIF?
 
-Traditional reporting tells an HSE team **what was reported**.
+Traditional reporting tells an HSE team:
+
+> **What was reported?**
 
 SentinelSIF is designed to answer three additional questions:
 
@@ -555,7 +797,7 @@ SentinelSIF is designed to answer three additional questions:
 
 > **Where are these precursor patterns concentrating?**
 
-The result is a shift from periodic manual review toward **near-real-time, evidence-backed SIF precursor intelligence**.
+The result is a shift from periodic manual review toward **evidence-backed SIF precursor intelligence**.
 
 ---
 
@@ -563,6 +805,8 @@ The result is a shift from periodic manual review toward **near-real-time, evide
 
 **Smart India Hackathon 2026 Prototype**
 
-SentinelSIF is a hackathon prototype intended to demonstrate the feasibility of an explainable, source-agnostic SIF precursor intelligence layer for OIL's HSSE reporting ecosystem.
+SentinelSIF is a hackathon prototype demonstrating the feasibility of an explainable, source-agnostic SIF precursor intelligence layer for an HSSE reporting ecosystem.
 
-It is not a production safety system and should not be used as the sole basis for operational safety decisions.
+The current prototype uses synthetic development data because real OIL HSSE data was not available to the development team. Quantitative synthetic benchmark results are provided to demonstrate prototype evaluation, while formal expert-reviewed evaluation remains unavailable until an independently labelled dataset can be obtained.
+
+SentinelSIF is not a production safety system and must not be used as the sole basis for operational safety decisions.
