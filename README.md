@@ -15,9 +15,9 @@ This enables HSE teams to identify reports that describe potentially life-threat
 
 The system is being developed as a **Smart India Hackathon (SIH) 2026 prototype** by Team Sentinels for Problem Statement No. **SIH26165**.
 
-#### [Getting Started](https://github.com/MnSykia/Sentinel_SIF#getting-started)
-#### [Features](https://github.com/MnSykia/Sentinel_SIF#features-1)
-#### [FAQ](https://github.com/MnSykia/Sentinel_SIF#faq)
+# Quick Acess
+
+## [Getting Started](https://github.com/MnSykia/Sentinel_SIF#getting-started) | ## [Features](https://github.com/MnSykia/Sentinel_SIF#features-1) | ## [FAQ](https://github.com/MnSykia/Sentinel_SIF#faq)
 
 ---
 
