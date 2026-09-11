@@ -1,7 +1,7 @@
 ﻿# SentinelSIF
 
 ### AI/NLP Engine for Detecting Serious Injury & Fatality (SIF) Precursors in HSSE Reports
-[getting started](https://github.com/MnSykia/Sentinel_SIF#getting-started)
+
 
 SentinelSIF is an explainable AI/NLP decision-support engine designed to identify Serious Injury & Fatality (SIF) precursors hidden within Unsafe Act (UA), Unsafe Condition (UC), near-miss, and incident reports.
 
@@ -14,6 +14,10 @@ Instead of relying primarily on reported injury severity, SentinelSIF evaluates 
 This enables HSE teams to identify reports that describe potentially life-threatening situations, prioritize them for review, and discover recurring precursor patterns across sites, activities, energy sources, and safety controls.
 
 The system is being developed as a **Smart India Hackathon (SIH) 2026 prototype** by Team Sentinels for Problem Statement No. **SIH26165**.
+
+#### [Getting Started](https://github.com/MnSykia/Sentinel_SIF#getting-started)
+#### [Features](https://github.com/MnSykia/Sentinel_SIF#features)
+#### []
 
 ---
 
@@ -388,24 +392,6 @@ The original model output and subsequent human override are retained separately 
 
 ---
 
-## Why SentinelSIF?
-
-Traditional reporting tells an HSE team:
-
-> **What was reported?**
-
-SentinelSIF is designed to answer three additional questions:
-
-> **Which reports contain SIF potential?**
-
-> **Which critical safety controls are failing?**
-
-> **Where are these precursor patterns concentrating?**
-
-The result is a shift from periodic manual review toward **evidence-backed SIF precursor intelligence**.
-
----
-
 ## Getting Started
 
 ### 1. Clone the repository
@@ -694,6 +680,44 @@ Post-hackathon development can extend SentinelSIF with:
 * Industry benchmarking against appropriate SIF exposure-rate baselines
 
 These are future extensions and are not represented as capabilities of the current SIH prototype.
+
+---
+# FAQ
+
+## Why SentinelSIF?
+
+Traditional reporting tells an HSE team:
+
+> **What was reported?**
+
+SentinelSIF is designed to answer three additional questions:
+
+> **Which reports contain SIF potential?**
+
+> **Which critical safety controls are failing?**
+
+> **Where are these precursor patterns concentrating?**
+
+The result is a shift from periodic manual review toward **evidence-backed SIF precursor intelligence**.
+
+## Why not use an LLM?
+An LLM could classify the text, but an LLM-only decision pipeline makes deterministic safety logic and auditability harder to guarantee. Our architecture explicitly decomposes the decision into energy, control status, semantic ML probability and evidence. LLMs can still be useful later as a supporting component for annotation, novel narratives or reviewer assistance.
+
+## Isn't this just keyword matching?
+**No.**
+Keywords are one component of the safety-domain layer, but semantic embeddings and the ML classifier help identify semantically similar descriptions that may use different wording. For example, "LOTO was bypassed," "equipment was not isolated," and "energy remained live" may express related safety conditions without sharing identical wording.
+
+## What confidence threshold are you using?
+The current prototype has a default review threshold of 0.55. For the specific unknown-control decision branch, the implemented ML threshold is 0.60.These are decision parameters, not claims of accuracy.
+
+## Why is your dataset synthetic?
+Because real OIL HSSE data was not available to the team during the hackathon. Rather than imply otherwise, we clearly separate synthetic development data from future expert-reviewed validation. The architecture itself is source-agnostic, so the model can be retrained and evaluated once appropriate OIL data is available.
+
+## How do you know your synthetic data is realistic?
+The dataset is designed around operational contexts, energy sources, control failures and SIF/non-SIF distinctions reflected in the safety framework. But synthetic data is still a limitation. It demonstrates the system pipeline and methodology, not real-world OIL generalization.
+**That is why independent expert review is the next validation step.**
+
+##
 
 ---
 
