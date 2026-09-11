@@ -1,6 +1,6 @@
 ﻿# SentinelSIF
 <p align="center">
-  <img src="static/img/SIF_LOGO.png" alt="SIF Logo" width="50" height="50">
+  <img src="static/img/SIF_LOGO.png" alt="SIF Logo" width="150" height="150">
 </p>
 
 ### AI/NLP Engine for Detecting Serious Injury & Fatality (SIF) Precursors in HSSE Reports
