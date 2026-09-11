@@ -1,4 +1,4 @@
-﻿# SentinelSIF
+﻿# SentinelSIF ![[static/img/SIF_LOGO.png |512x512]]
 
 ### AI/NLP Engine for Detecting Serious Injury & Fatality (SIF) Precursors in HSSE Reports
 
