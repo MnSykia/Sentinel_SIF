@@ -1,10 +1,11 @@
 ﻿# SentinelSIF
 
 ### AI/NLP Engine for Detecting Serious Injury & Fatality (SIF) Precursors in HSSE Reports
+[getting started](https://github.com/MnSykia/Sentinel_SIF#getting-started)
 
 SentinelSIF is an explainable AI/NLP decision-support engine designed to identify Serious Injury & Fatality (SIF) precursors hidden within Unsafe Act (UA), Unsafe Condition (UC), near-miss, and incident reports.
 
-![Dashboard](dash-1.png)
+![Dashboard](images/dash-1.png)
 
 Instead of relying primarily on reported injury severity, SentinelSIF evaluates the combination of:
 
@@ -51,7 +52,7 @@ The dashboard emphasizes **SIF-precursor density** rather than raw report volume
 
 A SIF precursor is not defined by the severity of the outcome. SentinelSIF focuses on situations where a high-energy source is present and the direct control intended to manage that energy is absent, ineffective, or not followed.
 
-![Reports](reports-1.png)
+![Reports](images/reports-1.png)
 
 Examples of high-energy exposure include:
 
@@ -254,7 +255,7 @@ The architecture follows a lightweight REST-based design with a Python NLP pipel
 
 ## Model Evaluation
 
-![model performance](model_performance.png)
+![model performance](images/model_performance.png)
 
 The SIH prototype defines the following target metrics:
 
@@ -384,6 +385,24 @@ SIF Classification
 ```
 
 The original model output and subsequent human override are retained separately so that reviewer decisions remain auditable. Human corrections can provide labelled examples for future model refinement.
+
+---
+
+## Why SentinelSIF?
+
+Traditional reporting tells an HSE team:
+
+> **What was reported?**
+
+SentinelSIF is designed to answer three additional questions:
+
+> **Which reports contain SIF potential?**
+
+> **Which critical safety controls are failing?**
+
+> **Where are these precursor patterns concentrating?**
+
+The result is a shift from periodic manual review toward **evidence-backed SIF precursor intelligence**.
 
 ---
 
@@ -675,24 +694,6 @@ Post-hackathon development can extend SentinelSIF with:
 * Industry benchmarking against appropriate SIF exposure-rate baselines
 
 These are future extensions and are not represented as capabilities of the current SIH prototype.
-
----
-
-## Why SentinelSIF?
-
-Traditional reporting tells an HSE team:
-
-> **What was reported?**
-
-SentinelSIF is designed to answer three additional questions:
-
-> **Which reports contain SIF potential?**
-
-> **Which critical safety controls are failing?**
-
-> **Where are these precursor patterns concentrating?**
-
-The result is a shift from periodic manual review toward **evidence-backed SIF precursor intelligence**.
 
 ---
 
