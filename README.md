@@ -10,7 +10,6 @@
 SentinelSIF is an explainable AI/NLP decision-support engine designed to identify Serious Injury & Fatality (SIF) precursors hidden within Unsafe Act (UA), Unsafe Condition (UC), near-miss, and incident reports.
 
 ![Dashboard](images/dash-1.png)
-![Dashboard](images/dash-3.png)
 
 Instead of relying primarily on reported injury severity, SentinelSIF evaluates the combination of:
 
@@ -61,6 +60,7 @@ The dashboard emphasizes **SIF-precursor density** rather than raw report volume
 
 A SIF precursor is not defined by the severity of the outcome. SentinelSIF focuses on situations where a high-energy source is present and the direct control intended to manage that energy is absent, ineffective, or not followed.
 
+![Dashboard-2](images/dash-3.png)
 ![Reports](images/reports-1.png)
 
 Examples of high-energy exposure include:
