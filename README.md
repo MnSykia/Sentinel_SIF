@@ -1,6 +1,6 @@
 ﻿# SentinelSIF
 <p align="center">
-  <img src="static/img/SIF_LOGO.png" alt="SIF Logo" width="200" height="200">
+  <img src="static/img/SIF_LOGO.png" alt="SIF Logo" width="200" height="200"><br>
   <img src="static/img/SIF.png" alt="SIF Logo" width="200" height="41">
 </p>
 
