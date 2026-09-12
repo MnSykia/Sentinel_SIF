@@ -52,6 +52,8 @@ The system focuses on three core outcomes:
      * Barrier/control failures
      * Life-Saving Rules
 
+![Dashboard-2](images/dash-3.png)
+
 The dashboard emphasizes **SIF-precursor density** rather than raw report volume, helping HSE teams identify where fatal-potential exposure is concentrated.
 
 ---
@@ -60,7 +62,6 @@ The dashboard emphasizes **SIF-precursor density** rather than raw report volume
 
 A SIF precursor is not defined by the severity of the outcome. SentinelSIF focuses on situations where a high-energy source is present and the direct control intended to manage that energy is absent, ineffective, or not followed.
 
-![Dashboard-2](images/dash-3.png)
 ![Reports](images/reports-1.png)
 
 Examples of high-energy exposure include:
