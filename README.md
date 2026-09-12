@@ -10,6 +10,7 @@
 SentinelSIF is an explainable AI/NLP decision-support engine designed to identify Serious Injury & Fatality (SIF) precursors hidden within Unsafe Act (UA), Unsafe Condition (UC), near-miss, and incident reports.
 
 ![Dashboard](images/dash-1.png)
+![Dashboard](images/dash-3.png)
 
 Instead of relying primarily on reported injury severity, SentinelSIF evaluates the combination of:
 
