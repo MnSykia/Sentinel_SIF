@@ -99,7 +99,7 @@ class SentinelClassifier:
 
         # 4. ML Embedding Score
         ml_prob = 0.50
-        if self.is_trained and self.embedding_model is not None and cleaned_text:
+        if self.is_trained and self.embedding_model is not None and self.ml_classifier is not None and cleaned_text:
             emb = self.embedding_model.encode([cleaned_text], show_progress_bar=False)
             probs = self.ml_classifier.predict_proba(emb)[0]
             ml_prob = float(probs[1])

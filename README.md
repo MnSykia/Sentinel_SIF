@@ -1,6 +1,7 @@
 ﻿# SentinelSIF
 <p align="center">
-  <img src="static/img/SIF_LOGO.png" alt="SIF Logo" width="150" height="150">
+  <img src="static/img/SIF_LOGO.png" alt="SIF Logo" width="200" height="200">
+  <img src="static/img/SIF.png" alt="SIF Logo" width="200" height="41">
 </p>
 
 ### AI/NLP Engine for Detecting Serious Injury & Fatality (SIF) Precursors in HSSE Reports
@@ -685,6 +686,7 @@ Post-hackathon development can extend SentinelSIF with:
 These are future extensions and are not represented as capabilities of the current SIH prototype.
 
 ---
+
 # FAQ
 
 ## Why not use an LLM?
