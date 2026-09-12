@@ -1,18 +1,30 @@
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
+from typing import cast
 from unittest.mock import patch
 
-from evaluation import evaluate_classifier
+from evaluation import evaluate_classifier, run_evaluation
+from sentinelsif.classifier import SentinelClassifier
 
 
-class StubClassifier:
-    def __init__(self, results):
+class _StubClassifier:
+    def __init__(self, results, is_trained=True):
         self.results = iter(results)
+        self.is_trained = is_trained
 
     def analyze_report(self, record):
         return next(self.results)
+
+    def train_on_data(self, dataset_path):
+        self.is_trained = True
+
+
+def StubClassifier(results, is_trained=True) -> SentinelClassifier:
+    return cast(SentinelClassifier, _StubClassifier(results, is_trained))
 
 
 def formal_record(report_id="EXPERT-1", sif=True, rules=None, **overrides):
@@ -115,6 +127,18 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(result["status"], "not_evaluated")
         self.assertEqual(result["synthetic_benchmark"]["status"], "not_evaluated")
 
+    def test_malformed_or_non_array_synthetic_files_are_invalid(self):
+        cases = [("{not-json", "invalid JSON"), ("{}", "top-level JSON value must be an array")]
+        for payload, expected in cases:
+            with self.subTest(expected=expected), tempfile.TemporaryDirectory() as temp:
+                data_dir = Path(temp) / "data"
+                data_dir.mkdir()
+                (data_dir / "dataset.json").write_text(payload, encoding="utf-8")
+                (data_dir / "train_split.json").write_text("[]", encoding="utf-8")
+                result = evaluate_classifier(Path(temp), StubClassifier([]))
+                self.assertEqual(result["status"], "invalid_test_set")
+                self.assertTrue(any(expected in error for error in result["validation"]["errors"]))
+
     def test_malformed_duplicate_invalid_and_overlap_formal_data(self):
         cases = [
             ([formal_record("A", ground_truth_sif="yes")], "ground_truth_sif"),
@@ -169,6 +193,26 @@ class EvaluationTests(unittest.TestCase):
             classifier = StubClassifier([{"sif_potential": False, "life_saving_rules": []}])
             result = evaluate_classifier(Path(temp), classifier)
             self.assertEqual(result["status"], "synthetic_benchmark")
+
+    def test_untrained_supplied_classifier_requires_explicit_training(self):
+        with tempfile.TemporaryDirectory() as temp:
+            self.write_synthetic(temp, [self.synthetic_record("S")], [])
+            with self.assertRaisesRegex(ValueError, "untrained"):
+                evaluate_classifier(Path(temp), StubClassifier([], is_trained=False))
+
+    def test_run_evaluation_prints_cli_summary(self):
+        result = {
+            "status": "synthetic_benchmark",
+            "evaluation_dataset": "data/dataset.json",
+            "test_set_size": 4,
+            "measured": {"sif_recall": 0.5, "sif_precision": None},
+        }
+        output = StringIO()
+        with patch("evaluation.evaluate_classifier", return_value=result), redirect_stdout(output):
+            self.assertIs(run_evaluation(), result)
+        self.assertIn("SentinelSIF held-out evaluation", output.getvalue())
+        self.assertIn("sif_recall: 50.0%", output.getvalue())
+        self.assertIn("sif_precision: Not evaluated", output.getvalue())
 
     def test_api_evaluation_preserves_provenance_fields(self):
         from app import evaluation as api_evaluation

@@ -636,7 +636,6 @@ Use `.env.example` to document configuration without exposing credentials.
 SentinelSIF/
 ├── app.py
 ├── evaluation.py
-├── evaluate.py
 ├── requirements.txt
 ├── README.md
 ├── .env.example

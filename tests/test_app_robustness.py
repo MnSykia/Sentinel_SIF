@@ -35,6 +35,22 @@ class AppRobustnessTests(unittest.TestCase):
             path.write_text(json.dumps(["bad"]), encoding="utf-8")
             with self.assertRaises(RuntimeError): validate_training_dataset(path)
 
+            path.write_text("{not-json", encoding="utf-8")
+            with self.assertRaises(RuntimeError): validate_training_dataset(path)
+
+            path.write_text(json.dumps({"records": []}), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "non-empty JSON array"):
+                validate_training_dataset(path)
+
+            record = {
+                "report_id": "DUPLICATE",
+                "narrative": "Valid narrative",
+                "ground_truth": {"sif_potential": False},
+            }
+            path.write_text(json.dumps([record, record]), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "duplicate report_id"):
+                validate_training_dataset(path)
+
     def test_malformed_persisted_model_output_is_controlled(self):
         with self.assertRaises(HTTPException) as raised:
             report_from_row({"report_id": "BROKEN", "model_output": "not-json"})
